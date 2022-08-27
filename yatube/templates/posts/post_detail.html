@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% load thumbnail %}
+{% load user_filters %}
+
+{% block title %}
+  Пост {{ post.text|truncatechars:30 }}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <aside class="col-12 col-md-3">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            {% if post.author.get_full_name %}
+              {{ post.author.get_full_name }}
+            {% else %}
+              @{{ post.author.username }}&nbsp;&nbsp;&nbsp;
+            {% endif %}
+          </li>
+        <li class="list-group-item">
+          {{ post.pub_date|date:"d E Y" }}
+        </li>
+        {% if post.group %}
+          <li class="list-group-item">
+            Группа: {{ post.group.title }}&nbsp;&nbsp;&nbsp;
+            <a href="{% url 'posts:group_posts' post.group.slug %}" class="btn btn-outline-primary btn-sm">
+              все записи группы
+            </a>
+          </li>
+        {% endif %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+          Всего постов автора: <span>{{ post.author.posts.count }}</span>
+        </li>
+        <li class="list-group-item">
+          <a href="{% url 'posts:profile' post.author.username %}" type="button" class="btn btn-outline-primary btn-sm">
+            все посты пользователя
+          </a>
+        </li>
+      </ul>
+    </aside>
+    <article class="col-12 col-md-9">
+      {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+        <img class="card-img my-2" src="{{ im.url }}">
+      {% endthumbnail %}
+      <pre style="margin: 10px 0 20px; white-space: pre-wrap;">{{ post.text }}</pre>
+      {% if user == post.author %}
+        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
+          Редактировать запись
+        </a>
+        {% comment %} <a class="btn btn-secondary" href="{% url 'posts:delete' post.id %}">Удалить запись</a> {% endcomment %}
+      {% endif %}
+      {% if user.is_authenticated %}
+            <div class="card my-4">
+              <h5 class="card-header">Добавить комментарий:</h5>
+              <div class="card-body">
+                <form method="post" action="{% url 'posts:add_comment' post.id %}">
+                  {% csrf_token %}      
+                  <div class="form-group mb-2">
+                    {{ form.text|addclass:"form-control" }}
+                  </div>
+                  <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+              </div>
+            </div>
+          {% endif %}
+
+          {% for comment in comments %}
+            <div class="media mb-4">
+              <div class="media-body">
+                <h5 class="mt-0">
+                  <a href="{% url 'posts:profile' comment.author.username %}">
+                    {{ comment.author.username }}
+                  </a>
+                </h5>
+                  <p>
+                  {{ comment.text }}
+                  </p>
+                </div>
+              </div>
+          {% endfor %}
+    </article>
+  </div>
+{% endblock %}

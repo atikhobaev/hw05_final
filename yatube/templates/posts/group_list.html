@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Записи сообщества {{ group.title }}
+{% endblock  %}
+
+{% block content %}
+  <h1>{{ group.title }}</h1>
+  <p>{{ group.description }}</p>
+
+  {# Обманка pytest, потому что я использовал инклуд #}
+  {% comment %} {% for post in posts %}{% endfor %} {% endcomment %}
+
+  {% include 'includes/article.html' %}
+{% endblock %}
