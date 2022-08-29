@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load cache %}
 
 {% block title %}
   Последние обновления
@@ -9,5 +10,7 @@
   <h1>Последние обновления</h1>
   <p>Свежие посты</p>
 
-  {% include 'includes/article.html' %}
+  {% cache cache_refresh index_article %}
+    {% include 'includes/article.html' %}
+  {% endcache %}
 {% endblock %}

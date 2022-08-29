@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 {% extends 'base.html' %}
+{% load cache %}
 
 {% block title %}
   Профайл пользователя {{ author.username }}
@@ -25,7 +25,8 @@
         </a>
     {% endif %}
   </div>
-
-  {% include 'includes/article.html' %}
-
+  
+  {% cache cache_refresh profile_article %}
+    {% include 'includes/article.html' %}
+  {% endcache %}
 {% endblock %}

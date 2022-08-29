@@ -12,29 +12,8 @@ POST_QUANTITY = 10
 CACHE_REFRESH = 20
 
 
-@cache_page(CACHE_REFRESH, key_prefix='index_page')
 def index(request):
     """Главная страница с постами."""
-    # использовал django-querycount из статьи
-    # https://www.tutorialspoint.com/django-query-count-in-terminal-for-debugging
-    # 1) Изначально было 31 запрос
-    # Post.objects.all()
-    # 2) Потом стало 21
-    # Post.objects.select_related('author').all()
-    # 3) Сейчас осталось 14
-    # Total queries: 14 in 0.0095s
-    # Ради интереса отключил вывод постов через шаблон показало 3 запроса
-    # Total queries: 3 in 0.0038s
-    # Если я открываю страницу с одним постом post_detail
-    # Total queries: 7 in 0.0047s
-    #
-    # Итого:
-    # Как я понял 3 запроса делает джанга обсолютно в любом случае
-    # Если мы показываем одну страницу
-    # через get_object_or_404(Post, pk=post_id) запросов  становится 7
-    # Если я включаю отображение постов методе index
-    # к трём запросам добавляется 11 запросов
-    # Не знаю какие выводы из этого делать xD мыслать зашла в тупик
     posts = Post.objects.select_related('author').select_related('group').all()
     paginator = Paginator(posts, POST_QUANTITY)
     page_number = request.GET.get('page')
@@ -44,6 +23,7 @@ def index(request):
     context = {
         'page_obj': page_obj,
         'index': index,
+        'cache_refresh': CACHE_REFRESH,
     }
 
     return render(request, 'posts/index.html', context)
@@ -60,6 +40,7 @@ def group_posts(request, slug):
     context = {
         'group': group,
         'page_obj': page_obj,
+        'cache_refresh': CACHE_REFRESH,
     }
     return render(request, 'posts/group_list.html', context)
 
@@ -83,6 +64,7 @@ def profile(request, username):
         'page_obj': page_obj,
         'posts_count': author.posts.count(),
         'following': following,
+        'cache_refresh': CACHE_REFRESH,
     }
 
     return render(request, 'posts/profile.html', context)
@@ -171,7 +153,8 @@ def follow_index(request):
     page_obj = paginator.get_page(page_number)
     context = {
         'page_obj': page_obj,
-        'follow': follow
+        'follow': follow,
+        'cache_refresh': CACHE_REFRESH,
     }
     return render(request, 'posts/follow.html', context)
 
@@ -187,6 +170,5 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
-    if author != request.user:
-        Follow.objects.filter(user=request.user, author=author).delete()
+    Follow.objects.filter(user=request.user, author=author).delete()
     return redirect("posts:profile", username=username)
